@@ -51,6 +51,9 @@
 /* Number of words */
 #define N_DWRD ((N_SBF+1)*N_DWRD_SBF) // Subframe word buffer size
 
+#define N_SBF_PAGE (3+2*25) // Subframes 1 to 3 and 25 pages of subframes 4 and 5
+#define MAX_PAGE (25)
+
 /* C/A code sequence length */
 #define CA_SEQ_LEN (1023)
 
@@ -72,6 +75,13 @@
 #define POW2_M30 9.313225746154785e-010
 #define POW2_M27 7.450580596923828e-009
 #define POW2_M24 5.960464477539063e-008
+
+#define POW2_M21 4.76837158203125e-007
+#define POW2_12  4096
+#define POW2_M38 3.63797880709171e-012
+#define POW2_M11 0.00048828125
+#define POW2_M23 1.19209289550781e-007
+#define POW2_M20 9.5367431640625e-007
 
 // Conventional values employed in GPS ephemeris model (ICD-GPS-200)
 #define GM_EARTH 3.986005e14
@@ -116,6 +126,12 @@
 #define PB4 0x5763e680
 #define PB5 0x6bb1f340
 #define PB6 0x8b7a89c0
+
+/*
+ * The almanac message for any dummy SVs shall contain alternating ones and zeros
+ * with valid parity. (IS-GPS-200L, p.111, 20.3.3.5.1.2)
+ */
+#define EMPTY_WORD 0xaaaaaaaaUL 
 
 /* Structure representing GPS time */
 typedef struct {
@@ -207,8 +223,9 @@ typedef struct {
 #endif
     double code_phase; /* Code phase */
     gpstime_t g0; /* GPS time at start */
-    unsigned long sbf[5][N_DWRD_SBF]; /* current subframe */
-    unsigned long dwrd[N_DWRD]; /* Data words of sub-frame */
+	unsigned long sbf[N_SBF_PAGE][N_DWRD_SBF]; /*!< current subframe */
+	unsigned long dwrd[N_DWRD]; /*!< Data words of sub-frame */
+	int ipage;
     int iword; /* initial word */
     int ibit; /* initial bit */
     int icode; /* initial code */

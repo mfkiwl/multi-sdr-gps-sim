@@ -162,6 +162,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case 700: // --iq16
             simulator.sample_size = SC16;
             break;
+        case 702: // --disable-almanac
+            simulator.almanac_enable = false;
+            break;
         case ARGP_KEY_END:
             if (state->arg_num > 0)
                 /* We use only options but no arguments */
@@ -183,6 +186,7 @@ static void simulator_init(void) {
     simulator.enable_tx_amp = false;
     simulator.use_rinex3 = false;
     simulator.time_overwrite = false;
+    simulator.almanac_enable = true;
     simulator.duration = USER_MOTION_SIZE;
     simulator.tx_gain = 0;
     simulator.ppb = 0;
@@ -263,6 +267,7 @@ int thread_to_core(int core_id) {
 int main(int argc, char** argv) {
     int ch = 0;
     bool is_info_shown = false;
+    bool is_help_shown = false;
 
     // signal handlers:
     signal(SIGINT, signal_handler);
@@ -288,7 +293,7 @@ int main(int argc, char** argv) {
     }
     gui_init();
     // No access to GUI until this point
-   
+
     if (simulator.interactive_mode && simulator.motion_file_name != NULL) {
         simulator.interactive_mode = false;
         simulator.target.valid = false;
@@ -334,8 +339,14 @@ int main(int argc, char** argv) {
                     break;
                 case 'i':
                 case 'I':
-                    gui_show_info(ON);
+                    gui_show_panel(INFO, ON);
                     is_info_shown = true;
+                    break;
+                case '?':
+                case 'h':
+                case 'H':
+                    gui_show_panel(HELP, ON);
+                    is_help_shown = true;
                     break;
                 case 9: // TAB
                     gui_toggle_current_panel();
@@ -380,10 +391,22 @@ int main(int argc, char** argv) {
                     simulator.target.velocity = simulator.target.speed / 100.0;
                     gui_show_speed((float) (simulator.target.velocity * 3.6));
                     break;
+                case GAIN_INC_KEY:
+                    simulator.tx_gain = sdr_set_gain(simulator.tx_gain + 1);
+                    gui_status_wprintw(GREEN, "Gain: %ddB.\r", simulator.tx_gain);
+                    break;
+                case GAIN_DEC_KEY:
+                    simulator.tx_gain = sdr_set_gain(simulator.tx_gain - 1);
+                    gui_status_wprintw(GREEN, "Gain: %ddB.\r", simulator.tx_gain);
+                    break;
                 default:
                     if (is_info_shown) {
-                        gui_show_info(OFF);
+                        gui_show_panel(INFO, OFF);
                         is_info_shown = false;
+                    }
+                    if (is_help_shown) {
+                        gui_show_panel(HELP, OFF);
+                        is_help_shown = false;
                     }
                     break;
             }

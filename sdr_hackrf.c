@@ -138,7 +138,7 @@ int sdr_hackrf_init(simulator_t *simulator) {
     freq_gps_hz = freq_gps_hz * (10000000 - simulator->ppb) / 10000000;
 
     /* Compute default value depending on sample rate */
-    baseband_filter_bw_hackrf_hz = hackrf_compute_baseband_filter_bw_round_down_lt(sample_rate_gps_hz);
+    baseband_filter_bw_hackrf_hz = hackrf_compute_baseband_filter_bw(TX_BW);
 
     if (baseband_filter_bw_hackrf_hz > BASEBAND_FILTER_BW_MAX) {
         gui_mvwprintw(TRACK, y++, gui_x_offset, "Baseband filter BW must be less or equal to %u Hz/%.03f MHz",
@@ -262,4 +262,20 @@ int sdr_hackrf_run(void) {
     }
 
     return 0;
+}
+
+int sdr_hackrf_set_gain(const int gain) {
+    int g = gain;
+    if (g < TX_IF_GAIN_MIN) {
+        g = TX_IF_GAIN_MIN;
+    } else if (g > TX_IF_GAIN_MAX) {
+        g = TX_IF_GAIN_MAX;
+    }
+
+    int result = hackrf_set_txvga_gain(device, g);
+    if (result != HACKRF_SUCCESS) {
+        gui_status_wprintw(RED, "hackrf_set_txvga_gain() failed: %s (%d)", hackrf_error_name(result), result);
+    }
+
+    return g;
 }

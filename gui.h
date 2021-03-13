@@ -28,6 +28,8 @@
 #define LEFT_KEY  'a'
 #define UPSPEED_KEY  'e'
 #define DOWNSPEED_KEY 'q'
+#define GAIN_INC_KEY 't'
+#define GAIN_DEC_KEY 'g'
 
 typedef enum {
     TRACK = 0,
@@ -41,7 +43,8 @@ typedef enum {
     LOCATION,
     EPHEMERIS,
     TOP,
-    STATUS
+    STATUS,
+    HELP
 } window_panel_t;
 
 typedef enum {
@@ -66,7 +69,7 @@ void gui_status_wprintw(status_color_t clr, const char * fmt, ...);
 void gui_colorpair(window_panel_t w, unsigned clr, attr_status_t onoff);
 void gui_top_panel(window_panel_t p);
 void gui_toggle_current_panel(void);
-void gui_show_info(attr_status_t onoff);
+void gui_show_panel(window_panel_t p, attr_status_t onoff);
 void gui_show_speed(float speed);
 void gui_show_heading(float hdg);
 void gui_show_vertical_speed(float vs);
